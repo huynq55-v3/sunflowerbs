@@ -1,6 +1,10 @@
-[package]
-name = "sunflowerbs"
-version = "0.1.0"
-edition = "2024"
+# Workspace root — chỉ chứa crate WASM `rust-crypto` dùng cho frontend.
+# `sunflowerbs` là tên gọi dự án; logic mật mã thuần nằm gọn trong `rust-crypto`.
+[workspace]
+resolver = "2"
+members = ["rust-crypto"]
 
-[dependencies]
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
