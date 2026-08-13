@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Register } from "@/components/Register";
 import { Login } from "@/components/Login";
-import { Account } from "@/components/Account";
+import { Drive } from "@/components/Drive";
+import { ExcelEditor } from "@/components/ExcelEditor";
 import { getSession, logout, restoreSession } from "@/services/authService";
 
 type Tab = "login" | "register";
@@ -10,6 +11,7 @@ export default function App() {
   const [user, setUser] = useState<string | null>(() => getSession()?.username ?? null);
   const [tab, setTab] = useState<Tab>("login");
   const [cryptoReady, setCryptoReady] = useState(false);
+  const [openFileId, setOpenFileId] = useState<string | null>(null);
 
   // Nạp WASM crypto khi mở app.
   useEffect(() => {
@@ -26,16 +28,34 @@ export default function App() {
     });
   }, []);
 
-  // Đã đăng nhập → bảng điều khiển tài khoản (tầng dữ liệu app sẽ thêm sau).
+  const handleLogout = () => {
+    logout();
+    setUser(null);
+    setOpenFileId(null);
+    setTab("login");
+  };
+
+  // Đã đăng nhập → workspace Drive / Excel Editor.
   if (user) {
+    const session = getSession();
+    if (!session) return null; // chờ session (thường không xảy ra)
+
+    // Đang mở 1 file Excel.
+    if (openFileId) {
+      return (
+        <ExcelEditor
+          itemId={openFileId}
+          session={session}
+          onBack={() => setOpenFileId(null)}
+        />
+      );
+    }
+
     return (
-      <Account
-        username={user}
-        onLogout={() => {
-          logout();
-          setUser(null);
-          setTab("login");
-        }}
+      <Drive
+        session={session}
+        onLogout={handleLogout}
+        onOpenFile={(id) => setOpenFileId(id)}
       />
     );
   }
